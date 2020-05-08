@@ -1,0 +1,11 @@
+#!include:.gitignore
+
+terraform/
+
+.git
+
+docs/
+docker-compose.yml
+.util
+
+.DS_Store
