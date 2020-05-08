@@ -18,3 +18,6 @@ terraform/.terraform/*
 *.tfstate.*
 crash.logs
 *.tfvars
+
+# VS code
+.vscode
