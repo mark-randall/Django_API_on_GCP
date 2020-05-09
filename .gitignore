@@ -21,3 +21,6 @@ crash.logs
 
 # VS code
 .vscode
+
+# Sqlite in memory store
+:memory

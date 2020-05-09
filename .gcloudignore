@@ -9,3 +9,6 @@ docker-compose.yml
 .util
 
 .DS_Store
+
+# Sqlite in memory store
+:memory

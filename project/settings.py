@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +26,18 @@ SECRET_KEY = 'kg_mk_=!u+%-=^wzob*kz3(f@(7ou0hfu!w&2u%r4u3mpdy4rv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+env = os.environ
+if "CURRENT_HOST" in os.environ:
+    currentHost = env["CURRENT_HOST"]
+    if "://" in currentHost: 
+        HOSTS = [currentHost.split("://")[1]]
+    else:
+        HOSTS = [currentHost]
+else:
+    # Assume localhost if no CURRENT_HOST
+    HOSTS = ["localhost"]
+
+ALLOWED_HOSTS = ["127.0.0.1"] + HOSTS
 
 
 # Application definition
