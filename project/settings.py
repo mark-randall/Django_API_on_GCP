@@ -16,6 +16,18 @@ import environ
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+mandatory_settings = ["DATABASE_URL"]
+optional_settings = []
+
+# If our mandatory settings aren't all already defined as environment variables
+# try pulling them from Secret Manager
+if not all (k in os.environ.keys() for k in set(mandatory_settings)):
+    from . import sm_helper
+    secrets = sm_helper.access_secrets(mandatory_settings + optional_settings)
+    os.environ.update(secrets)
+
+env = environ.Env(DEBUG=(bool, False))
+#env.read_env(os.environ.get("ENV_PATH", ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -26,13 +38,12 @@ SECRET_KEY = 'kg_mk_=!u+%-=^wzob*kz3(f@(7ou0hfu!w&2u%r4u3mpdy4rv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-env = os.environ
 if "CURRENT_HOST" in os.environ:
-    currentHost = env["CURRENT_HOST"]
-    if "://" in currentHost: 
-        HOSTS = [currentHost.split("://")[1]]
-    else:
-        HOSTS = [currentHost]
+    HOSTS = []
+    for h in env.list("CURRENT_HOST"):
+        if "://" in h:
+            h = h.split("://")[1]
+        HOSTS.append(h)
 else:
     # Assume localhost if no CURRENT_HOST
     HOSTS = ["localhost"]
@@ -86,13 +97,7 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-  'default': {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': os.path.join(BASE_DIR,':memory')
-  }
-}
-
+DATABASES = {"default": env.db()}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
