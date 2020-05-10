@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROJECT_ID=django-api-276715 #$DEVSHELL_PROJECT_ID
+PROJECT_ID=$DEVSHELL_PROJECT_ID
 
 create_service_account()
 { 
@@ -67,6 +67,12 @@ deploy()
         $(create_service_account())
     fi
 
+    # Create DB if necessary
+    EXISTING_SQL=$(gcloud sql instances list)
+    if ! [[ "$EXISTING_SQL" == *"$SERVICE_NAME"* ]]; then
+        $(create_db())
+    fi
+
     # Create container and add to Container Registry
     gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME .
 
@@ -76,4 +82,15 @@ deploy()
     # Set ENV VAR for Django ALLOWED_HOSTS
     SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --format "value(status.url)")
     gcloud run services update $SERVICE_NAME --update-env-vars "CURRENT_HOST=${SERVICE_URL}"
+}
+
+delete()
+{
+    SERVICE_NAME=$1
+
+    gcloud sql instances delete $SERVICE_NAME
+
+    # NOTE: Not deleting run service because it is serverless and scales to zero
+    # https://cloud.google.com/run/pricing
+    # gcloud beta run services delete $SERVICE_NAME
 }
