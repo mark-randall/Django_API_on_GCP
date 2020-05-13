@@ -17,14 +17,17 @@ import environ
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 mandatory_settings = ["DATABASE_URL"]
-optional_settings = []
+optional_settings = ["GS_BUCKET_NAME"]
 
 # If our mandatory settings aren't all already defined as environment variables
 # try pulling them from Secret Manager
 if not all (k in os.environ.keys() for k in set(mandatory_settings)):
     from . import sm_helper
-    secrets = sm_helper.access_secrets(mandatory_settings + optional_settings)
-    os.environ.update(secrets)
+    try:
+        secrets = sm_helper.access_secrets(mandatory_settings + optional_settings)
+        os.environ.update(secrets)
+    except:
+        print("mandatory_settings not found in SM")
 
 env = environ.Env(DEBUG=(bool, False))
 #env.read_env(os.environ.get("ENV_PATH", ".env"))
@@ -72,6 +75,18 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+STATIC_ROOT = "/static/"
+
+if "GS_BUCKET_NAME" in os.environ:
+    GS_BUCKET_NAME = env("GS_BUCKET_NAME", None)
+    if GS_BUCKET_NAME:
+        DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+        STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+        GS_DEFAULT_ACL = "publicRead"
+        INSTALLED_APPS += ["storages"]
+    else:
+        print("GS_BUCKET_NAME not found")
 
 ROOT_URLCONF = 'project.urls'
 
