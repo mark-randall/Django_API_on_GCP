@@ -24,3 +24,6 @@ crash.logs
 
 # Sqlite in memory store
 :memory
+
+# GCP SQL Proxy
+cloud_sql_proxy

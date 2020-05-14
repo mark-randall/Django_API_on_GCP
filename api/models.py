@@ -2,7 +2,6 @@ from django.db import models
 import uuid
 import datetime
 
-class FeedItem:
-    id = uuid.uuid4()
-    created = datetime.datetime.now()
-    title = 'test'
+class FeedItem(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=255)

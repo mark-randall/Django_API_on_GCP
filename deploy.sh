@@ -20,6 +20,8 @@ create_service_account()
     for role in cloudsql.client run.admin; do
         gcloud projects add-iam-policy-binding $PROJECT_ID --member serviceAccount:$SA --role roles/${role}
     done
+
+    gcloud iam service-accounts add-iam-policy-binding ${SA} --member "serviceAccount:${CLOUDBUILD_SA}" --role "roles/iam.serviceAccountUser"
 }
 
 random_password() 
@@ -79,7 +81,9 @@ deploy()
 {
     SERVICE_NAME=$1
     DB_VERSION=$2
+    SQL_INSTANCE_NAME=${1}-${2}
     SA=${SERVICE_NAME}@${PROJECT_ID}.iam.gserviceaccount.com
+    REGION=us-central1
     GS_BUCKET_NAME=${PROJECT_ID}-media
 
     # Create service account if necessary
@@ -97,18 +101,19 @@ deploy()
     # Create DB if necessary
     EXISTING_SQL=$(gcloud sql instances list)
     if ! [[ "$EXISTING_SQL" == *"$SERVICE_NAME"* ]]; then
-        $(create_db())
+        $(create_db() $SERVICE_NAME $DB_VERSION)
     fi
 
     # Create container and add to Container Registry
-    gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME .
+    gcloud builds submit --config cloud-build.yaml --substitutions "_REGION=${REGION},_SQL_INSTANCE_NAME=${SQL_INSTANCE_NAME},_SERVICE_NAME=${SERVICE_NAME}"
 
     # Deploy conntainer to Cloud Run
     gcloud run deploy $SERVICE_NAME --allow-unauthenticated --image gcr.io/$PROJECT_ID/$SERVICE_NAME --service-account $SA
 
     # Set ENV VAR for Django ALLOWED_HOSTS
-    SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --format "value(status.url)")
-    gcloud run services update $SERVICE_NAME --update-env-vars "CURRENT_HOST=${SERVICE_URL}"
+    # Set SQL instance
+    #SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --format "value(status.url)")
+    #gcloud run services update $SERVICE_NAME --update-env-vars "CURRENT_HOST=${SERVICE_URL}" --set-cloudsql-instances $PROJECT_ID:$REGION:$SQL_INSTANCE_NAME
 }
 
 delete()
