@@ -32,14 +32,13 @@ if not all (k in os.environ.keys() for k in set(mandatory_settings)):
 env = environ.Env(DEBUG=(bool, False))
 #env.read_env(os.environ.get("ENV_PATH", ".env"))
 
+DEBUG = env('DEBUG')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'kg_mk_=!u+%-=^wzob*kz3(f@(7ou0hfu!w&2u%r4u3mpdy4rv'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 if "CURRENT_HOST" in os.environ:
     HOSTS = []
@@ -74,7 +73,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 STATIC_ROOT = "/static/"
@@ -88,6 +87,8 @@ if "GS_BUCKET_NAME" in os.environ:
         INSTALLED_APPS += ["storages"]
     else:
         print("GS_BUCKET_NAME not found")
+else:
+    print("GS_BUCKET_NAME not found")
 
 ROOT_URLCONF = 'project.urls'
 
