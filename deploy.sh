@@ -108,13 +108,29 @@ deploy()
     gcloud builds submit --config cloud-build.yaml --substitutions "_REGION=${REGION},_SQL_INSTANCE_NAME=${SQL_INSTANCE_NAME},_SERVICE_NAME=${SERVICE_NAME}"
 
     # Deploy conntainer to Cloud Run
-    gcloud run deploy $SERVICE_NAME --allow-unauthenticated --image gcr.io/$PROJECT_ID/$SERVICE_NAME --service-account $SA
+    #gcloud run deploy $SERVICE_NAME --allow-unauthenticated --image gcr.io/$PROJECT_ID/$SERVICE_NAME --service-account $SA
 
     # Set ENV VAR for Django ALLOWED_HOSTS
     # Set SQL instance
     #SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --format "value(status.url)")
     #gcloud run services update $SERVICE_NAME --update-env-vars "CURRENT_HOST=${SERVICE_URL}" --set-cloudsql-instances $PROJECT_ID:$REGION:$SQL_INSTANCE_NAME
 }
+
+add_deploy_trigger() {
+
+    SERVICE_NAME=$1
+    DB_VERSION=$2
+    REPO_OWNER=mark-randall
+    SQL_INSTANCE_NAME=${1}-${2}
+    REGION=us-central1
+
+    gcloud beta builds triggers create github \
+        --repo-name django-on-gcp \
+        --repo-owner ${REPO_OWNER} \
+        --branch-pattern master \
+        --build-config cloud-build.yaml \
+        --substitutions "_REGION=${REGION},_INSTANCE_NAME=${SQL_INSTANCE_NAME},_SERVICE=${SERVICE_NAME}"
+} 
 
 delete()
 {
