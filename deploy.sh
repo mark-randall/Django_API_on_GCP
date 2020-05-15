@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROJECT_ID=django-api-276715  #$DEVSHELL_PROJECT_ID
+PROJECT_ID=$DEVSHELL_PROJECT_ID
 
 create_service_account()
 { 
