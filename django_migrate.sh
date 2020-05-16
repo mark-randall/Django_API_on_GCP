@@ -10,5 +10,5 @@ if [ "$ENABLE_DB_MIGRATIONS" = true ] ; then
     python ./manage.py migrate
 
 else
-    echo "Migrations disabled set ${ENABLE_DB_MIGRATIONS}=true to enable"
+    echo "Migrations disabled set ENABLE_DB_MIGRATIONS=true to enable"
 fi
