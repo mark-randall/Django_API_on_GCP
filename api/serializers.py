@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from api import models
@@ -28,12 +29,14 @@ class FeedItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.FeedItem
-        fields = '__all__'
+        exclude = ['user']
         ordering = ['created']
 
     @transaction.atomic
     def create(self, validated_data):
-        feed_item = models.FeedItem.objects.create(**validated_data)
+        data = validated_data.copy()
+        data['user'] = self.context['request'].user
+        feed_item = models.FeedItem.objects.create(**data)
 
         for id in self.context.get('request').data.get('exiting_image_ids', []):
 

@@ -9,3 +9,4 @@ django-storages[google]
 google-cloud-secret-manager==0.1.1
 google-python-cloud-debugger; sys_platform == 'linux'
 django-rest-swagger
+firebase-admin

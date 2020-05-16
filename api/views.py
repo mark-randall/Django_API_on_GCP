@@ -2,13 +2,19 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework import renderers
+from rest_framework.permissions import IsAuthenticated
+from api import authentication
 from api import helpers
 from api import models
 from api import serializers
 
 class FeedItemViewSet(ModelViewSet):
-    queryset = models.FeedItem.objects.all()
+    authentication_classes = [authentication.FirebaseAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = serializers.FeedItemSerializer
+
+    def get_queryset(self):
+        return models.FeedItem.objects.filter(user_id=self.request.user.id)
 
 class ImageViewSet(ModelViewSet):
     serializer_class = serializers.ImageSerializer
@@ -24,4 +30,3 @@ class FeedItemCommentViewSet(ModelViewSet):
     def get_queryset(self):
         feed_item_id = self.kwargs['feed_id']
         return models.FeedItemComment.objects.filter(feed_item=feed_item_id)
-

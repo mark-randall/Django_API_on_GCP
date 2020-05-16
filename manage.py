@@ -2,11 +2,14 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import firebase_admin
 
 
 def main():
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+
+    firebase_admin.initialize_app()
 
     try:
         import googleclouddebugger
