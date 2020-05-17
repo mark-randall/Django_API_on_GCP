@@ -4,6 +4,7 @@ from rest_framework import exceptions
 from rest_framework.exceptions import AuthenticationFailed
 from firebase_admin import auth as firebase_auth
 from api.models import User
+import firebase_admin
 
 class FirebaseAuthentication(authentication.BaseAuthentication):
     """
@@ -16,6 +17,11 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
 
     def authenticate(self, request):
 
+        # TODO: Determine best place for app to be configured
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app()
+
+        
         auth = authentication.get_authorization_header(request)
 
         try:
@@ -29,7 +35,6 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
     def _authenticate_credentials(self, firebase_token):
 
         try:
-            print(firebase_token)
             decoded_token = firebase_auth.verify_id_token(
                 firebase_token,
                 check_revoked=self.check_revoked
