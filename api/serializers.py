@@ -8,8 +8,16 @@ from api import helpers
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Image
-        exclude = ['feed_item']
+        exclude = ['feed_item', 'user']
         ordering = ['created']
+
+    def create(self, validated_data):
+
+        # Add user to validated_data
+        data = validated_data.copy()
+        data['user'] = self.context['request'].user
+
+        return super(ImageSerializer, self).create(data)
 
 class FeedItemCommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,11 +41,13 @@ class FeedItemSerializer(serializers.ModelSerializer):
         ordering = ['created']
 
     def _add_existing_images_ids(self, feed_item: models.FeedItem, existing_image_ids: [str]):
+
         for id in existing_image_ids:
             try:
-                image = models.Image.objects.get(id=id)
+                image = models.Image.objects.get(id=id, user_id=self.context['request'].user.id)
                 if image.feed_item_id is not None:
                     if image.feed_item_id == feed_item.id:
+                        print("Image already added to feed item")
                         continue
                     else:
                         raise ValidationError()
@@ -45,6 +55,7 @@ class FeedItemSerializer(serializers.ModelSerializer):
                 image.feed_item_id = feed_item.id
                 image.save()
             except Exception as e:
+                print(e)
                 raise ValidationError('Invalid id in existing_image_ids')
 
     @transaction.atomic
