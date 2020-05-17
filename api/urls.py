@@ -22,6 +22,7 @@ router.register(
     basename='feed_images'
 )
 
+## Use POST/PATCH feed/<feed_id> with 'existing_image_ids' param to associate an image with a feed iteem
 router.register('images', ImageViewSet, basename='image')
 
 schema_view = get_swagger_view(title='Django API')

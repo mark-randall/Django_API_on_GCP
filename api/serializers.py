@@ -8,18 +8,18 @@ from api import helpers
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Image
-        fields = '__all__'
+        exclude = ['feed_item']
         ordering = ['created']
 
 class FeedItemCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FeedItemComment
-        fields = '__all__'
+        exclude = ['feed_item']
         ordering = ['created']
 
     def create(self, validated_data):
         data = validated_data.copy()
-        data['feed_item_id'] = helpers.feedItem_forURLPath(self.context.get('request').get_full_path()).id #TODO: is there a better way to accomplish this
+        data['feed_item_id'] = helpers.feedItem_forURLPath(self.context.get('request').get_full_path()).id
         comment = models.FeedItemComment.objects.create(**data)
         return comment
         
@@ -32,21 +32,42 @@ class FeedItemSerializer(serializers.ModelSerializer):
         exclude = ['user']
         ordering = ['created']
 
-    @transaction.atomic
-    def create(self, validated_data):
-        data = validated_data.copy()
-        data['user'] = self.context['request'].user
-        feed_item = models.FeedItem.objects.create(**data)
-
-        for id in self.context.get('request').data.get('exiting_image_ids', []):
-
+    def _add_existing_images_ids(self, feed_item: models.FeedItem, existing_image_ids: [str]):
+        for id in existing_image_ids:
             try:
                 image = models.Image.objects.get(id=id)
                 if image.feed_item_id is not None:
-                    raise ValidationError()
+                    if image.feed_item_id == feed_item.id:
+                        continue
+                    else:
+                        raise ValidationError()
+
                 image.feed_item_id = feed_item.id
                 image.save()
             except Exception as e:
-                raise ValidationError('Invalid id in exiting_image_ids')
+                raise ValidationError('Invalid id in existing_image_ids')
+
+    @transaction.atomic
+    def create(self, validated_data):
+
+        # Add user to validated_data
+        data = validated_data.copy()
+        data['user'] = self.context['request'].user
+
+        # Create FeedItem
+        feed_item = super(FeedItemSerializer, self).create(data)
+
+        # dd FeedItem to images
+        exiting_image_ids = self.context.get('request').data.get('existing_image_ids', [])
+        self._add_existing_images_ids(feed_item, exiting_image_ids)
 
         return feed_item
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+
+        # Add FeedItem to images
+        exiting_image_ids = self.context.get('request').data.get('existing_image_ids', [])
+        self._add_existing_images_ids(instance, exiting_image_ids)
+
+        return super(FeedItemSerializer, self).update(instance, validated_data)
