@@ -63,6 +63,6 @@ deploy_trigger()
         --repo-name $REPO_NAME \
         --repo-owner $REPO_OWNER \
         --branch-pattern master \
-        --build-config cloud-build.yaml \
+        --build-config cloud_build/cloud-build.yaml \
         --substitutions "_REGION=${REGION},_SQL_INSTANCE_NAME=${SERVICE_NAME}-sql,_SERVICE_NAME=${SERVICE_NAME},_SERVICE_ACCOUNT=${SERVICE_ACCOUNT}"
 }
