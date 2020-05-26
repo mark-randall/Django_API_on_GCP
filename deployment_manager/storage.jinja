@@ -1,0 +1,8 @@
+resources:
+- name: {{ env["project"] }}-{{ env["deployment"] }}
+  type: storage.v1.bucket
+  properties:
+    location: {{ properties['region'] }}
+    storageClass: {{ properties['storageClass'] }}
+    versioning:
+      enabled: false

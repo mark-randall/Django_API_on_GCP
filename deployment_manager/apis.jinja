@@ -1,0 +1,8 @@
+resources:
+{% for api in properties["apis"] %}
+- name: {{ api }}-enable
+  type: deploymentmanager.v2.virtual.enableService
+  properties:
+    consumerId: project:{{ env["project"] }}
+    serviceName: {{ api }}
+{% endfor %}

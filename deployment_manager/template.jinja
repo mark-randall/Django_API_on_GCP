@@ -1,0 +1,91 @@
+#
+# Give Google APIs Service Agent Service Account the primative project Owner Role (default is primative Editor) 
+# Necessary to update project IAM policy
+#
+
+resources:
+
+- name: enable-apis
+  type: apis.jinja
+  properties:
+    apis:
+    - cloudresourcemanager.googleapis.com
+    - servicemanagement.googleapis.com
+    - deploymentmanager.googleapis.com
+    - iam.googleapis.com
+    - run.googleapis.com
+    - compute.googleapis.com
+    - sql-component.googleapis.com
+    - sqladmin.googleapis.com
+    - cloudbuild.googleapis.com
+    - cloudkms.googleapis.com
+    - secretmanager.googleapis.com
+
+- name: service-account
+  type: iam.v1.serviceAccount
+  metadata:
+    dependsOn:
+    - iam.googleapis.com-enable
+  properties:
+    accountId: {{ env["deployment"] }}
+    displayName: {{ env["deployment"] }} service account
+
+- name: add-policy-bindings
+  type: add_policy_bindings.jinja
+  metadata:
+    dependsOn:
+    - service-account
+    - cloudresourcemanager.googleapis.com-enable
+  properties:
+    bindings:
+    - type: projects
+      resource: {{ env["project"] }}
+      members: 
+      - serviceAccount:{{ env["deployment"] }}@{{ env["project"] }}.iam.gserviceaccount.com
+      - serviceAccount:{{ env["project_number"] }}@cloudbuild.gserviceaccount.com
+      roles:
+      - cloudsql.client
+      - run.admin
+      - secretmanager.secretAccessor
+    - type: projects
+      resource: {{ env["project"] }}
+      members: 
+      - serviceAccount:{{ env["deployment"] }}@{{ env["project"] }}.iam.gserviceaccount.com
+      roles:
+      - storage.objectAdmin
+    - type: projects
+      resource: {{ env["project"] }}
+      members: 
+      - serviceAccount:{{ env["project_number"] }}@cloudbuild.gserviceaccount.com
+      roles:
+      - iam.serviceAccountUser
+
+- name: cloud-storage-bucket
+  type: storage.jinja
+  properties:
+    name: {{ env["deployment"] }}-media
+    region: us-central1
+    storageClass: REGIONAL
+
+- name: cloudsql
+  type: cloudsql.jinja
+  metadata:
+    dependsOn:
+    - sqladmin.googleapis.com-enable
+  properties:
+    name: {{ env["deployment"] }}
+    region: {{ properties['region'] }}
+    databaseVersion: POSTGRES_11
+    settings:
+      tier: db-f1-micro
+      backupConfiguration:
+        enabled: false
+    database:
+      name: {{ env["deployment"] }}
+      users:
+      - name: {{ env["deployment"] }}
+        password: {{ properties["db-user-password"] }}
+
+outputs:
+- name: key
+  value: value

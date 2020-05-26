@@ -27,3 +27,5 @@ crash.logs
 
 # GCP SQL Proxy
 cloud_sql_proxy
+
+private_scripts.sh
