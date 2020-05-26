@@ -11,12 +11,15 @@ from api import serializers
 class FeedItemViewSet(ModelViewSet):
     authentication_classes = [authentication.FirebaseAuthentication]
     permission_classes = [IsAuthenticated]
+    public = True
     serializer_class = serializers.FeedItemSerializer
 
     def get_queryset(self):
         return models.FeedItem.objects.filter(user_id=self.request.user.id)
 
 class ImageViewSet(ModelViewSet):
+    authentication_classes = [authentication.FirebaseAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = serializers.ImageSerializer
     parser_classes = (MultiPartParser, FormParser)
 
@@ -25,6 +28,8 @@ class ImageViewSet(ModelViewSet):
         return models.Image.objects.filter(feed_item_id=feed_item_id)
 
 class FeedItemCommentViewSet(ModelViewSet):
+    authentication_classes = [authentication.FirebaseAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = serializers.FeedItemCommentSerializer
 
     def get_queryset(self):

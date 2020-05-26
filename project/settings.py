@@ -69,7 +69,7 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = { 
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema', 
-    'DEFAULT_AUTHENTICATION_CLASSES': ['api.authentication.FirebaseAuthentication']
+    #'DEFAULT_AUTHENTICATION_CLASSES': ['api.authentication.FirebaseAuthentication']
 }
 
 AUTH_USER_MODEL = 'api.User'
